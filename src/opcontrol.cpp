@@ -57,6 +57,11 @@ void umbc::Robot::opcontrol() {
     drive_right.set_brake_modes(E_MOTOR_BRAKE_COAST);
     drive_right.set_gearing(E_MOTOR_GEAR_GREEN);
 
+    // initialize lift
+    pros::Motor lift_motor = pros::Motor(LIFT_MOTOR_PORT);
+    pros::MotorGroup lift = pros::MotorGroup(vector<pros::Motor>{lift_motor});
+    lift.set_brake_modes(E_MOTOR_BRAKE_HOLD);
+    lift.set_gearing(E_MOTOR_GEAR_RED);
 
     while(1) {
 
@@ -72,6 +77,15 @@ void umbc::Robot::opcontrol() {
 
         drive_left.move_velocity(drive_left_velocity);
         drive_right.move_velocity(drive_right_velocity);
+
+        // set lift position
+        if (controller_master->get_digital(E_CONTROLLER_DIGITAL_R1)) {
+            lift.move_velocity(MOTOR_RED_GEAR_MULTIPLIER);
+        } else if (controller_master->get_digital(E_CONTROLLER_DIGITAL_R2)) {
+            lift.move_velocity(-MOTOR_RED_GEAR_MULTIPLIER);
+        } else {
+            lift_motor.brake();
+        }
 
         // required loop delay (do not edit)
         pros::Task::delay(this->opcontrol_delay_ms);
