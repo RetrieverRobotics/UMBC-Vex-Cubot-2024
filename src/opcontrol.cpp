@@ -28,7 +28,7 @@ using namespace std;
 // ports for right drive
 #define RIGHT_FRONT_MOTOR_PORT 8
 #define RIGHT_MIDDLE_MOTOR_PORT 9
-#define RIGHT_BACK_MOTOR_PORT  10
+#define RIGHT_BACK_MOTOR_PORT  6
 
 // ports for lift
 #define LIFT_MOTOR_PORT 5
