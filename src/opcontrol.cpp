@@ -21,14 +21,14 @@ using namespace std;
 #define MOTOR_REVERSE                true
 
 // ports for left drive
-#define LEFT_FRONT_MOTOR_PORT 17
+#define LEFT_FRONT_MOTOR_PORT 16
 #define LEFT_MIDDLE_MOTOR_PORT 18
 #define LEFT_BACK_MOTOR_PORT  19
 
 // ports for right drive
 #define RIGHT_FRONT_MOTOR_PORT 8
 #define RIGHT_MIDDLE_MOTOR_PORT 9
-#define RIGHT_BACK_MOTOR_PORT  10
+#define RIGHT_BACK_MOTOR_PORT  6
 
 // ports for lift
 #define LIFT_MOTOR_PORT 5
