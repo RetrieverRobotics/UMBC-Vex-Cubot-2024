@@ -10,6 +10,7 @@
 #include "pros/misc.h"
 #include "pros/motors.hpp"
 #include "pros/rtos.h"
+#include "pros/rtos.hpp"
 #include "umbc.h"
 
 #include <cstdint>
@@ -39,6 +40,16 @@ using namespace std;
 
 // ports for intake
 #define INTAKE_MOTOR_PORT 12
+
+#define INTAKE_MOVE_SPEED (int)(127/2)
+
+void intake_go_to(bool clockwise, pros::Motor &intake_motor, int encoder_pos = NULL);
+struct param {
+        bool open;
+        pros::Motor *intake;
+        int encoder_pos = NULL;
+};
+Task intake_mover = NULL;    
 
 void umbc::Robot::opcontrol() {
 
@@ -73,7 +84,7 @@ void umbc::Robot::opcontrol() {
     // initialize intake
     int current_pos = 0;
     int target_pos = 0;
-    pros::Motor intake_motor = pros::Motor(INTAKE_MOTOR_PORT);
+    pros::Motor intake_motor(INTAKE_MOTOR_PORT);
 
     while(1) {
 
@@ -99,41 +110,63 @@ void umbc::Robot::opcontrol() {
             lift_motor.brake();
         }
 
+        /*
         // set intake position (toggle)
         if (controller_master->get_digital_new_press(pros::E_CONTROLLER_DIGITAL_A)) {
-            static const int MOTOR_ERROR = 50; // margin of error
-            static const int CYCLE_TIME = 500; // in milliseconds
             static bool is_open = false;
-            static bool in_range = false;
             is_open = !is_open;
-            
-            int start_pos = intake_motor.get_position();
-            uint32_t *prev_cycle = new uint32_t(c::millis()); // used to determine if motor is still moving
-            bool exited_start = false; // check if the motor has actually begun moving
 
-            intake_motor = is_open ? 127 : -127;
+            if (!intake_mover || (intake_mover && intake_mover->get_state() )) {
+                //TO-DO: Change the heap allocation/deletion method to suspending and deleting a previous task
 
-            while (!in_range) {
-                delete prev_cycle;
-                prev_cycle = new uint32_t(c::millis()-CYCLE_TIME);
-                current_pos = intake_motor.get_position();
-                exited_start = abs(start_pos - current_pos) > MOTOR_ERROR;
-                in_range = !(exited_start && abs(current_pos - intake_motor.get_raw_position(prev_cycle)) < MOTOR_ERROR);
+                param *func_param = new param;
+                func_param->intake = intake_motor;
+                func_param->open = is_open;
+                intake_mover = new Task((task_fn_t)intake_go_to, (void*)func_param, "Moving intake");
+                delete func_param;
             }
-
-            intake_motor = 0;
-        }
+        } */
 
         // set intake position (manual)
         if (controller_master->get_digital(pros::E_CONTROLLER_DIGITAL_L1)) {
-
-        }
-
-        if (controller_master->get_digital(pros::E_CONTROLLER_DIGITAL_L2)) {
-
+            intake_motor = INTAKE_MOVE_SPEED;
+        } else if (controller_master->get_digital(pros::E_CONTROLLER_DIGITAL_L2)) {
+            intake_motor = -INTAKE_MOVE_SPEED;
+        } else {
+            intake_motor = 0;
         }
 
         // required loop delay (do not edit)
         pros::Task::delay(this->opcontrol_delay_ms);
     }
 }
+
+/*
+void intake_go_to(param *parameters) {
+    bool clockwise = parameters->open;
+    pros::Motor &intake_motor = *parameters->intake;
+    int encoder_pos = parameters->encoder_pos;
+    static const int MOTOR_ERROR = 50; // margin of error
+    static const int CYCLE_TIME = 500; // in milliseconds
+
+    int start_pos = intake_motor.get_position();
+    uint32_t *prev_cycle = new uint32_t(c::millis()); // used to determine if motor is still moving
+    
+    bool exited_start = false; // check if the motor has actually begun moving
+    bool in_range = false;
+
+    intake_motor = clockwise ? 127 : -127;
+
+    while (!in_range) {
+        delete prev_cycle;
+        prev_cycle = new uint32_t(c::millis()-CYCLE_TIME);
+        
+        int current_pos = intake_motor.get_position();
+        
+        exited_start = abs(start_pos - current_pos) > MOTOR_ERROR;
+        in_range = !(exited_start && abs(current_pos - intake_motor.get_raw_position(prev_cycle)) < MOTOR_ERROR);
+    }
+
+    delete prev_cycle;
+    intake_motor = 0;
+} */
