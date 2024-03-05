@@ -7,9 +7,13 @@
  */
 
 #include "api.h"
+#include "pros/misc.h"
+#include "pros/motors.hpp"
+#include "pros/rtos.h"
 #include "umbc.h"
 
 #include <cstdint>
+#include <sys/types.h>
 
 using namespace pros;
 using namespace umbc;
@@ -32,6 +36,9 @@ using namespace std;
 
 // ports for lift
 #define LIFT_MOTOR_PORT 5
+
+// ports for intake
+#define INTAKE_MOTOR_PORT 12
 
 void umbc::Robot::opcontrol() {
 
@@ -63,6 +70,11 @@ void umbc::Robot::opcontrol() {
     lift.set_brake_modes(E_MOTOR_BRAKE_HOLD);
     lift.set_gearing(E_MOTOR_GEAR_RED);
 
+    // initialize intake
+    int current_pos = 0;
+    int target_pos = 0;
+    pros::Motor intake_motor = pros::Motor(INTAKE_MOTOR_PORT);
+
     while(1) {
 
         // set velocity for drive (arcade controls)
@@ -85,6 +97,40 @@ void umbc::Robot::opcontrol() {
             lift.move_velocity(-MOTOR_RED_GEAR_MULTIPLIER);
         } else {
             lift_motor.brake();
+        }
+
+        // set intake position (toggle)
+        if (controller_master->get_digital_new_press(pros::E_CONTROLLER_DIGITAL_A)) {
+            static const int MOTOR_ERROR = 50; // margin of error
+            static const int CYCLE_TIME = 500; // in milliseconds
+            static bool is_open = false;
+            static bool in_range = false;
+            is_open = !is_open;
+            
+            int start_pos = intake_motor.get_position();
+            uint32_t *prev_cycle = new uint32_t(c::millis()); // used to determine if motor is still moving
+            bool exited_start = false; // check if the motor has actually begun moving
+
+            intake_motor = is_open ? 127 : -127;
+
+            while (!in_range) {
+                delete prev_cycle;
+                prev_cycle = new uint32_t(c::millis()-CYCLE_TIME);
+                current_pos = intake_motor.get_position();
+                exited_start = abs(start_pos - current_pos) > MOTOR_ERROR;
+                in_range = !(exited_start && abs(current_pos - intake_motor.get_raw_position(prev_cycle)) < MOTOR_ERROR);
+            }
+
+            intake_motor = 0;
+        }
+
+        // set intake position (manual)
+        if (controller_master->get_digital(pros::E_CONTROLLER_DIGITAL_L1)) {
+
+        }
+
+        if (controller_master->get_digital(pros::E_CONTROLLER_DIGITAL_L2)) {
+
         }
 
         // required loop delay (do not edit)
