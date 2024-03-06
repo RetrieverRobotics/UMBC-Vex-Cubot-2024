@@ -105,20 +105,23 @@ void umbc::Robot::opcontrol() {
         // set intake position (toggle)
         static bool intake_moving = false;
         if (controller_master->get_digital_new_press(pros::E_CONTROLLER_DIGITAL_A)) {
-            static bool moving_cw = true;
+            static bool moving_cw = true; // cw is up, ccw is down
             moving_cw = !moving_cw;
 
             intake_moving = true;
 
-            if (moving_cw)
+            if (moving_cw) {
                 intake_motor.move(127);
-            else
+                intake_motor.set_brake_mode(E_MOTOR_BRAKE_HOLD);
+            } else {
                 intake_motor.move(-127);
+                intake_motor.set_brake_mode(E_MOTOR_BRAKE_COAST)
+            }
             
             int start_time = c::millis();
             while (c::millis() - start_time < 500 || intake_motor.get_actual_velocity() > 1) {}
 
-            intake_motor.move(0);
+            intake_motor.brake();
             intake_moving = false;
         }
 
