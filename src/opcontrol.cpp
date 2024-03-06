@@ -43,6 +43,7 @@ using namespace std;
 
 #define INTAKE_MOVE_SPEED (int)(127/2)
 
+/*
 void intake_go_to(bool clockwise, pros::Motor &intake_motor, int encoder_pos = NULL);
 struct param {
         bool open;
@@ -50,7 +51,7 @@ struct param {
         int encoder_pos = NULL;
 };
 Task intake_mover = NULL;    
-
+*/
 void umbc::Robot::opcontrol() {
 
     // nice names for controllers (do not edit)
