@@ -115,11 +115,15 @@ void umbc::Robot::opcontrol() {
 
         // set intake position (manual)
         if (controller_master->get_digital(pros::E_CONTROLLER_DIGITAL_L1)) {
-            intake_motor = INTAKE_MOVE_SPEED;
-        } else if (controller_master->get_digital(pros::E_CONTROLLER_DIGITAL_L2)) {
-            intake_motor = -INTAKE_MOVE_SPEED;
-        } else if (controller_master->get_digital(pros::E_CONTROLLER_DIGITAL_B)) {
-            intake_motor = 0;
+            intake_motor.move(INTAKE_MOVE_SPEED);
+        } 
+        
+        if (controller_master->get_digital(pros::E_CONTROLLER_DIGITAL_L2)) {
+            intake_motor.move(-INTAKE_MOVE_SPEED);
+        } 
+        
+        if (controller_master->get_digital(pros::E_CONTROLLER_DIGITAL_B)) {
+            intake_motor.move(0);
         }
 
         // required loop delay (do not edit)
