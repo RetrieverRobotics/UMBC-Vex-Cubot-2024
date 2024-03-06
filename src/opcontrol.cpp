@@ -102,6 +102,7 @@ void umbc::Robot::opcontrol() {
             lift_motor.brake();
         }
 
+        // set intake position (toggle)
         static bool intake_moving = false;
         if (controller_master->get_digital_new_press(pros::E_CONTROLLER_DIGITAL_A)) {
             static bool moving_cw = true;
@@ -118,11 +119,11 @@ void umbc::Robot::opcontrol() {
             intake_motor.move(INTAKE_MOVE_SPEED);
         } 
         
-        if (controller_master->get_digital(pros::E_CONTROLLER_DIGITAL_L2)) {
+        else if (controller_master->get_digital(pros::E_CONTROLLER_DIGITAL_L2)) {
             intake_motor.move(-INTAKE_MOVE_SPEED);
         } 
         
-        if (controller_master->get_digital(pros::E_CONTROLLER_DIGITAL_B)) {
+        else {
             intake_motor.move(0);
         }
 
