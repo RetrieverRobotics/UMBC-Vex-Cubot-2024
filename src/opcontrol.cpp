@@ -8,6 +8,7 @@
 
 #include "api.h"
 #include "pros/misc.h"
+#include "pros/motors.h"
 #include "pros/motors.hpp"
 #include "pros/rtos.h"
 #include "pros/rtos.hpp"
@@ -74,9 +75,8 @@ void umbc::Robot::opcontrol() {
     lift.set_gearing(E_MOTOR_GEAR_RED);
 
     // initialize intake
-    int current_pos = 0;
-    int target_pos = 0;
     pros::Motor intake_motor(INTAKE_MOTOR_PORT);
+    intake_motor.set_brake_mode(E_MOTOR_BRAKE_HOLD);
 
     while(1) {
 
@@ -132,7 +132,7 @@ void umbc::Robot::opcontrol() {
         } 
         
         else {
-            intake_motor.move(0);
+            intake_motor.brake();
         }
 
         // required loop delay (do not edit)
