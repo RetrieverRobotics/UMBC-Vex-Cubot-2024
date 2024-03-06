@@ -109,9 +109,17 @@ void umbc::Robot::opcontrol() {
             moving_cw = !moving_cw;
 
             intake_moving = true;
-            while (false) {
 
-            }
+            if (moving_cw)
+                intake_motor.move(127);
+            else
+                intake_motor.move(-127);
+            
+            int start_time = c::millis();
+            while (c::millis() - start_time < 500 || intake_motor.get_actual_velocity() > 1) {}
+
+            intake_motor.move(0);
+            intake_moving = false;
         }
 
         // set intake position (manual)
