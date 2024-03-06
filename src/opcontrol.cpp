@@ -81,7 +81,7 @@ void umbc::Robot::opcontrol() {
     while(1) {
 
         // set velocity for drive (arcade controls)
-        int32_t tank_left_y = controller_master->get_analog(E_CONTROLLER_ANALOG_LEFT_Y);
+        int32_t tank_left_y = -controller_master->get_analog(E_CONTROLLER_ANALOG_LEFT_Y);
         int32_t tank_right_y = controller_master->get_analog(E_CONTROLLER_ANALOG_RIGHT_Y);
 
         int32_t drive_left_velocity = (int32_t)(((double)(tank_left_y) / (double)E_CONTROLLER_ANALOG_MAX)
