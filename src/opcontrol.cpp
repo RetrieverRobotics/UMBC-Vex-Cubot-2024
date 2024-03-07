@@ -76,7 +76,7 @@ void umbc::Robot::opcontrol() {
 
     // initialize intake
     pros::Motor intake_motor(INTAKE_MOTOR_PORT);
-    intake_motor.set_brake_mode(E_MOTOR_BRAKE_HOLD);
+    intake_motor.set_brake_mode(E_MOTOR_BRAKE_COAST);
 
     while(1) {
 
@@ -112,10 +112,8 @@ void umbc::Robot::opcontrol() {
 
             if (moving_cw) {
                 intake_motor.move(127);
-                intake_motor.set_brake_mode(E_MOTOR_BRAKE_HOLD);
             } else {
                 intake_motor.move(-127);
-                intake_motor.set_brake_mode(E_MOTOR_BRAKE_COAST)
             }
             
             int start_time = c::millis();
