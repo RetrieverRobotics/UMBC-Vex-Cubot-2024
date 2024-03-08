@@ -52,6 +52,7 @@ void umbc::Robot::opcontrol() {
 
     // initialize left drive
     pros::Motor drive_left_front_motor = pros::Motor(LEFT_FRONT_MOTOR_PORT);
+    drive_left_front_motor.set_reversed(true);
     pros::Motor drive_left_middle_motor = pros::Motor(LEFT_MIDDLE_MOTOR_PORT, MOTOR_REVERSE);
 	pros::Motor drive_left_back_motor = pros::Motor(LEFT_BACK_MOTOR_PORT);
     pros::MotorGroup drive_left = 
