@@ -80,7 +80,28 @@ void umbc::Robot::opcontrol() {
     intake_motor.set_brake_mode(E_MOTOR_BRAKE_COAST);
 
     while(1) {
-
+/*
+*                **Controls**
+* -------------------------------------------
+* | Left analog X -                          |
+* | Left analog Y - Left drive power         |
+* | Right analog X -                         |
+* | Right analog Y - Right driver power      |
+* | Face Button A - Toggle intake position   |
+* | Face Button B -                          |
+* | Face Button X -                          |
+* | Face Button Y -                          |
+* | Face Button Up -                         |
+* | Face Button Down -                       |
+* | Face Button Left -                       |
+* | Face Button Right -                      |
+* | Shoulder Button R1 -                     |
+* | Shoulder Button R2 -                     |
+* | Shoulder Button L1 - Close intake        |
+* | Shoulder Button L2 - Open intake         |
+* -------------------------------------------
+* 
+*/
         // set velocity for drive (arcade controls)
         int32_t tank_left_y = -controller_master->get_analog(E_CONTROLLER_ANALOG_LEFT_Y);
         int32_t tank_right_y = controller_master->get_analog(E_CONTROLLER_ANALOG_RIGHT_Y);
@@ -94,6 +115,7 @@ void umbc::Robot::opcontrol() {
         drive_left.move_velocity(drive_left_velocity);
         drive_right.move_velocity(drive_right_velocity);
 
+        /*
         // set lift position
         if (controller_master->get_digital(E_CONTROLLER_DIGITAL_R1)) {
             lift.move_velocity(MOTOR_RED_GEAR_MULTIPLIER);
@@ -102,6 +124,7 @@ void umbc::Robot::opcontrol() {
         } else {
             lift_motor.brake();
         }
+        */
 
         // set intake position (toggle)
         static bool intake_moving = false;
