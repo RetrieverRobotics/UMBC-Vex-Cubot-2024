@@ -42,7 +42,7 @@ using namespace std;
 // ports for intake
 #define INTAKE_MOTOR_PORT 12
 
-#define INTAKE_MOVE_SPEED 64
+#define INTAKE_MOVE_SPEED 127
 
 void umbc::Robot::opcontrol() {
 
