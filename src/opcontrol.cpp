@@ -36,11 +36,11 @@ using namespace std;
 #define RIGHT_MIDDLE_MOTOR_PORT 9
 #define RIGHT_BACK_MOTOR_PORT  6
 
-// ports for lift
-#define LIFT_MOTOR_PORT 5
-
 // ports for intake
 #define INTAKE_MOTOR_PORT 12
+
+#define INTAKE_POSITION_UP     0
+#define INTAKE_POSITION_DOWN 2500
 
 #define INTAKE_MOVE_SPEED 127
 
@@ -69,15 +69,20 @@ void umbc::Robot::opcontrol() {
     drive_right.set_brake_modes(E_MOTOR_BRAKE_COAST);
     drive_right.set_gearing(E_MOTOR_GEAR_GREEN);
 
-    // initialize lift
-    pros::Motor lift_motor = pros::Motor(LIFT_MOTOR_PORT);
-    pros::MotorGroup lift = pros::MotorGroup(vector<pros::Motor>{lift_motor});
-    lift.set_brake_modes(E_MOTOR_BRAKE_HOLD);
-    lift.set_gearing(E_MOTOR_GEAR_RED);
+    // initialize intakes
+    bool is_intake_position_manual = false;
+    static double intake_position = 0;
+	pros::Motor intake_motor = pros::Motor(INTAKE_MOTOR_PORT);
+    pros::MotorGroup intake = pros::MotorGroup(vector<pros::Motor>{intake_motor});
+    intake.set_brake_modes(E_MOTOR_BRAKE_BRAKE);
+    intake.set_gearing(E_MOTOR_GEAR_RED);
 
-    // initialize intake
-    pros::Motor intake_motor(INTAKE_MOTOR_PORT);
-    intake_motor.set_brake_mode(E_MOTOR_BRAKE_COAST);
+    // set zero position for intake
+    if (0 == intake_position) {
+        intake.tare_position();
+    } else {
+        intake.set_zero_position(-intake_position);
+    }
 
     while(1) {
 /*
@@ -95,8 +100,8 @@ void umbc::Robot::opcontrol() {
 * | Face Button Down -                       |
 * | Face Button Left -                       |
 * | Face Button Right -                      |
-* | Shoulder Button R1 -                     |
-* | Shoulder Button R2 -                     |
+* | Shoulder Button R1 - Manual intake up    |
+* | Shoulder Button R2 - Manual intake down  |
 * | Shoulder Button L1 - Close intake        |
 * | Shoulder Button L2 - Open intake         |
 * -------------------------------------------
@@ -115,82 +120,31 @@ void umbc::Robot::opcontrol() {
         drive_left.move_velocity(drive_left_velocity);
         drive_right.move_velocity(drive_right_velocity);
 
-        /*
-        // set lift position
-        if (controller_master->get_digital(E_CONTROLLER_DIGITAL_R1)) {
-            lift.move_velocity(MOTOR_RED_GEAR_MULTIPLIER);
-        } else if (controller_master->get_digital(E_CONTROLLER_DIGITAL_R2)) {
-            lift.move_velocity(-MOTOR_RED_GEAR_MULTIPLIER);
-        } else {
-            lift_motor.brake();
+        // set position for intake
+        intake_position = intake.get_positions().front();
+        if (controller_master->get_digital_new_press(E_CONTROLLER_DIGITAL_R1)) {
+            intake.set_brake_modes(E_MOTOR_BRAKE_COAST);
+            intake.move_absolute(INTAKE_POSITION_UP, MOTOR_RED_GEAR_MULTIPLIER);
+            is_intake_position_manual = false;
+        } else if (controller_master->get_digital_new_press(E_CONTROLLER_DIGITAL_R2)) {
+            intake.set_brake_modes(E_MOTOR_BRAKE_COAST);
+            intake.move_absolute(INTAKE_POSITION_DOWN, MOTOR_RED_GEAR_MULTIPLIER);
+            is_intake_position_manual = false;
         }
-        */
-
-        // set intake position (toggle)
-        static bool intake_moving = false;
-        if (controller_master->get_digital_new_press(pros::E_CONTROLLER_DIGITAL_A)) {
-            static bool moving_cw = true; // cw is up, ccw is down
-            moving_cw = !moving_cw;
-
-            intake_moving = true;
-
-            if (moving_cw) {
-                intake_motor.move(127);
-            } else {
-                intake_motor.move(-127);
-            }
-            
-            int start_time = c::millis();
-            while (c::millis() - start_time < 500 || intake_motor.get_actual_velocity() > 1) {}
-
-            intake_motor.brake();
-            intake_moving = false;
-        }
-
-        // set intake position (manual)
-        if (controller_master->get_digital(pros::E_CONTROLLER_DIGITAL_L1)) {
-            intake_motor.move(INTAKE_MOVE_SPEED);
-        } 
         
-        else if (controller_master->get_digital(pros::E_CONTROLLER_DIGITAL_L2)) {
-            intake_motor.move(-INTAKE_MOVE_SPEED);
-        } 
-        
-        else {
-            intake_motor.brake();
+        // manually control left intake
+        if (controller_master->get_digital(E_CONTROLLER_DIGITAL_L1)) {
+            intake.move_velocity(-MOTOR_RED_GEAR_MULTIPLIER);
+            is_intake_position_manual = true;
+        } else if (controller_master->get_digital(E_CONTROLLER_DIGITAL_L2)) {
+            intake.move_velocity(MOTOR_RED_GEAR_MULTIPLIER);
+            is_intake_position_manual = true;
+        } else if (is_intake_position_manual) {
+            intake.set_brake_modes(E_MOTOR_BRAKE_HOLD);
+            intake.brake();
         }
 
         // required loop delay (do not edit)
         pros::Task::delay(this->opcontrol_delay_ms);
     }
 }
-
-/*
-void intake_go_to(param *parameters) {
-    bool clockwise = parameters->open;
-    pros::Motor &intake_motor = *parameters->intake;
-    int encoder_pos = parameters->encoder_pos;
-    static const int MOTOR_ERROR = 50; // margin of error
-    static const int CYCLE_TIME = 500; // in milliseconds
-
-    int start_pos = intake_motor.get_position();
-    uint32_t *prev_cycle = new uint32_t(c::millis()); // used to determine if motor is still moving
-    
-    bool exited_start = false; // check if the motor has actually begun moving
-    bool in_range = false;
-
-    intake_motor = clockwise ? 127 : -127;
-
-    while (!in_range) {
-        delete prev_cycle;
-        prev_cycle = new uint32_t(c::millis()-CYCLE_TIME);
-        
-        int current_pos = intake_motor.get_position();
-        
-        exited_start = abs(start_pos - current_pos) > MOTOR_ERROR;
-        in_range = !(exited_start && abs(current_pos - intake_motor.get_raw_position(prev_cycle)) < MOTOR_ERROR);
-    }
-
-    delete prev_cycle;
-    intake_motor = 0;
-} */
